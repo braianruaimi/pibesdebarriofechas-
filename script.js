@@ -11,8 +11,12 @@ const reservationName = document.getElementById('reservationName');
 const reservationInstagram = document.getElementById('reservationInstagram');
 const reservationDate = document.getElementById('reservationDate');
 const reservationGuests = document.getElementById('reservationGuests');
+const reservationTable = document.getElementById('reservationTable');
+const reservationTableNote = document.getElementById('reservationTableNote');
 const reservationSignature = document.getElementById('reservationSignature');
 const reservationQrContainer = document.getElementById('reservationQr');
+const mesaField = document.getElementById('mesa');
+const mesaNotice = document.getElementById('mesaNotice');
 const RESERVATION_STORAGE_KEY = 'pibes-de-barrio:last-reservation';
 let deferredInstallPrompt;
 let hasEngaged = false;
@@ -150,6 +154,14 @@ const paintReservationTicket = (reservationData) => {
 
   if (reservationGuests) {
     reservationGuests.textContent = reservationData.personas;
+  }
+
+  if (reservationTable) {
+    reservationTable.textContent = reservationData.mesa || 'No';
+  }
+
+  if (reservationTableNote) {
+    reservationTableNote.hidden = reservationData.mesa !== 'Si';
   }
 
   if (reservationSignature) {
@@ -309,6 +321,19 @@ if (downloadQrButton) {
   downloadQrButton.addEventListener('click', downloadReservationQr);
 }
 
+const syncMesaNotice = () => {
+  if (!mesaField || !mesaNotice) {
+    return;
+  }
+
+  mesaNotice.hidden = mesaField.value !== 'Si';
+};
+
+if (mesaField) {
+  mesaField.addEventListener('change', syncMesaNotice);
+  syncMesaNotice();
+}
+
 const restoredReservation = readPersistedReservation();
 
 if (restoredReservation?.reservationPayload) {
@@ -325,6 +350,7 @@ bookingForm.addEventListener('submit', (event) => {
   const instagram = document.getElementById('instagram').value.trim();
   const fecha = document.getElementById('fecha').value;
   const personas = document.getElementById('personas').value;
+  const mesa = mesaField?.value || 'No';
 
   if (!nombre || !instagram) {
     alert('Completa tu nombre e Instagram para reservar.');
@@ -339,6 +365,7 @@ bookingForm.addEventListener('submit', (event) => {
     instagram,
     fecha,
     personas,
+    mesa,
     emitidoEn: new Date().toISOString()
   };
   const signaturePayload = JSON.stringify(reservationBasePayload);
@@ -350,14 +377,20 @@ bookingForm.addEventListener('submit', (event) => {
     `Instagram: ${instagram}`,
     `Fecha: ${fecha}`,
     `Asistentes: ${personas}`,
+    `Mesa: ${mesa}`,
     `Firma: ${firmaReserva}`
   ].join('\n');
+
+  const mesaDetail = mesa === 'Si'
+    ? '%0A🍕 *Mesa:* Si%0A🍺 Incluye cena en mesa: pizza + birra o gaseosa $18.000%0A'
+    : `🍽️ *Mesa:* ${encodeURIComponent(mesa)}%0A`;
 
   const mensaje = `¡Hola Pibes De Barrio! 🎙️ Quiero reservar para la transmisión.%0A%0A`
     + `📌 *Nombre:* ${encodeURIComponent(nombre)}%0A`
     + `📲 *Instagram:* ${encodeURIComponent(instagram)}%0A`
     + `📅 *Fecha:* ${encodeURIComponent(fecha)}%0A`
     + `👥 *Asistentes:* ${encodeURIComponent(personas)}%0A`
+    + mesaDetail
     + `🎫 *Reserva:* ${encodeURIComponent(reservaId)}%0A`
     + `🔐 *Firma:* ${encodeURIComponent(firmaReserva)}`;
 
@@ -368,6 +401,7 @@ bookingForm.addEventListener('submit', (event) => {
     instagram,
     fecha,
     personas,
+    mesa,
     firmaReserva,
     reservationPayload,
     pendingWhatsappUrl
