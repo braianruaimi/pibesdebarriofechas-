@@ -226,7 +226,7 @@ const openWhatsappReservation = () => {
     return;
   }
 
-  const popup = window.open(pendingWhatsappUrl, '_blank', 'noopener');
+  const popup = window.open(pendingWhatsappUrl, '_blank', 'noopener,noreferrer');
 
   if (!popup) {
     window.location.href = pendingWhatsappUrl;
@@ -434,10 +434,6 @@ bookingForm.addEventListener('submit', (event) => {
     `Firma: ${firmaReserva}`
   ].join('\n');
 
-  const mesaDetail = mesa === 'Si'
-    ? '%0A🍕 *Mesa:* Si%0A🍺 Incluye cena en mesa: pizza + birra o gaseosa $18.000%0A'
-    : `🍽️ *Mesa:* ${encodeURIComponent(mesa)}%0A`;
-
   const mensaje = `¡Hola Pibes De Barrio! 🎙️ Quiero reservar para la transmisión.
 
 📌 *Nombre:* ${nombre}
@@ -464,14 +460,8 @@ ${mesa === 'Si' ? '🍕 *Mesa:* Si\n🍺 Incluye cena en mesa: pizza + birra o g
   persistReservation(reservationData);
   paintReservationTicket(reservationData);
   openReservationModal();
+
   waitForQrDownloadData().then(() => {
     downloadReservationQr();
   });
-
-  if (isIos || isAndroid || isStandalone) {
-    window.location.href = pendingWhatsappUrl;
-    return;
-  }
-
-  window.open(pendingWhatsappUrl, '_blank');
 });
