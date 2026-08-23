@@ -108,14 +108,26 @@ const renderReservationQr = (payload) => {
 
   reservationQrContainer.innerHTML = '';
 
-  qrInstance = new QRCode(reservationQrContainer, {
-    text: payload,
-    width: 220,
-    height: 220,
-    colorDark: '#0a0a0c',
-    colorLight: '#ffffff',
-    correctLevel: QRCode.CorrectLevel.H
-  });
+  if (typeof payload !== 'string' || payload.length > 900) {
+    reservationQrContainer.innerHTML = '<p class="qr-fallback">QR no disponible</p>';
+    qrDownloadDataUrl = '';
+    return;
+  }
+
+  try {
+    qrInstance = new QRCode(reservationQrContainer, {
+      text: payload,
+      width: 220,
+      height: 220,
+      colorDark: '#0a0a0c',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  } catch (error) {
+    reservationQrContainer.innerHTML = '<p class="qr-fallback">QR no disponible</p>';
+    qrDownloadDataUrl = '';
+    return;
+  }
 
   window.requestAnimationFrame(() => {
     const generatedImage = reservationQrContainer.querySelector('img');
@@ -222,15 +234,33 @@ const waitForQrDownloadData = () => new Promise((resolve) => {
 });
 
 const openWhatsappReservation = () => {
-  if (!pendingWhatsappUrl) {
+  const targetUrl = pendingWhatsappUrl || continueWhatsappButton?.dataset?.whatsappUrl || '';
+
+  if (!targetUrl) {
     return;
   }
 
-  const popup = window.open(pendingWhatsappUrl, '_blank', 'noopener,noreferrer');
-
-  if (!popup) {
-    window.location.href = pendingWhatsappUrl;
+  try {
+    const popup = window.open(targetUrl, '_blank', 'noopener,noreferrer');
+    if (popup) {
+      return;
+    }
+  } catch {
+    return;
   }
+
+  const whatsappLink = document.createElement('a');
+  whatsappLink.href = targetUrl;
+  whatsappLink.target = '_blank';
+  whatsappLink.rel = 'noopener noreferrer';
+  whatsappLink.style.position = 'fixed';
+  whatsappLink.style.opacity = '0';
+  whatsappLink.style.pointerEvents = 'none';
+  whatsappLink.style.left = '-9999px';
+  whatsappLink.style.top = '-9999px';
+  document.body.appendChild(whatsappLink);
+  whatsappLink.click();
+  document.body.removeChild(whatsappLink);
 };
 
 const setEngagedState = (event) => {
@@ -364,9 +394,11 @@ window.addEventListener('keydown', (event) => {
 
 if (continueWhatsappButton) {
   continueWhatsappButton.addEventListener('click', () => {
-    if (pendingWhatsappUrl) {
-      openWhatsappReservation();
+    if (!pendingWhatsappUrl) {
+      return;
     }
+
+    window.location.href = pendingWhatsappUrl;
   });
 }
 
@@ -395,9 +427,7 @@ if (reservationModal) {
   reservationModal.hidden = true;
 }
 
-bookingForm.addEventListener('submit', (event) => {
-  event.preventDefault();
-
+const finalizeReservation = () => {
   const telefonoStudio = '5492215047962';
   const nombre = document.getElementById('nombre').value.trim();
   const instagram = document.getElementById('instagram').value.trim();
@@ -407,7 +437,7 @@ bookingForm.addEventListener('submit', (event) => {
 
   if (!nombre || !instagram) {
     alert('Completa tu nombre e Instagram para reservar.');
-    return;
+    return null;
   }
 
   const reservaId = buildReservationCode(nombre);
@@ -424,15 +454,15 @@ bookingForm.addEventListener('submit', (event) => {
   const signaturePayload = JSON.stringify(reservationBasePayload);
   const firmaReserva = buildReservationSignature(signaturePayload);
   const reservationPayload = [
-    'RESERVA PIBES DE BARRIO',
-    `Codigo: ${reservaId}`,
-    `Nombre: ${nombre}`,
-    `Instagram: ${instagram}`,
-    `Fecha: ${fecha}`,
-    `Asistentes: ${personas}`,
-    `Mesa: ${mesa}`,
-    `Firma: ${firmaReserva}`
-  ].join('\n');
+    'reserva-pibes-de-barrio',
+    reservaId,
+    nombre.slice(0, 24),
+    instagram.slice(0, 24),
+    fecha.slice(0, 20),
+    personas.slice(0, 12),
+    mesa,
+    firmaReserva
+  ].join('|');
 
   const mensaje = `¡Hola Pibes De Barrio! 🎙️ Quiero reservar para la transmisión.
 
@@ -445,6 +475,8 @@ ${mesa === 'Si' ? '🍕 *Mesa:* Si\n🍺 Incluye cena en mesa: pizza + birra o g
 🔐 *Firma:* ${firmaReserva}`;
 
   pendingWhatsappUrl = `https://wa.me/${telefonoStudio}?text=${encodeURIComponent(mensaje)}`;
+  window.pendingWhatsappUrl = pendingWhatsappUrl;
+
   const reservationData = {
     reservaId,
     nombre,
@@ -460,6 +492,39 @@ ${mesa === 'Si' ? '🍕 *Mesa:* Si\n🍺 Incluye cena en mesa: pizza + birra o g
   persistReservation(reservationData);
   paintReservationTicket(reservationData);
   openReservationModal();
+
+  return reservationData;
+};
+
+const submitButton = bookingForm.querySelector('button[type="submit"]');
+if (submitButton) {
+  submitButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const reservationData = finalizeReservation();
+    if (!reservationData) {
+      return;
+    }
+
+    const currentUrl = pendingWhatsappUrl;
+    if (currentUrl) {
+      window.location.href = currentUrl;
+    }
+  });
+}
+
+bookingForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const reservationData = finalizeReservation();
+
+  if (!reservationData) {
+    return;
+  }
+
+  if (pendingWhatsappUrl) {
+    window.location.href = pendingWhatsappUrl;
+  }
 
   waitForQrDownloadData().then(() => {
     downloadReservationQr();
