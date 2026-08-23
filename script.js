@@ -221,7 +221,25 @@ const waitForQrDownloadData = () => new Promise((resolve) => {
   syncData();
 });
 
-const setEngagedState = () => {
+const openWhatsappReservation = () => {
+  if (!pendingWhatsappUrl) {
+    return;
+  }
+
+  const popup = window.open(pendingWhatsappUrl, '_blank', 'noopener');
+
+  if (!popup) {
+    window.location.href = pendingWhatsappUrl;
+  }
+};
+
+const setEngagedState = (event) => {
+  const target = event?.target;
+
+  if (target instanceof HTMLElement && target.closest('#installButton')) {
+    return;
+  }
+
   if (hasEngaged) {
     return;
   }
@@ -275,18 +293,53 @@ if (isIos && !isStandalone && iosInstallHint) {
 }
 
 if (installButton) {
-  installButton.addEventListener('click', async () => {
+  installButton.addEventListener('click', async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (installPanel) {
+      installPanel.hidden = false;
+    }
+
     if (deferredInstallPrompt) {
-      deferredInstallPrompt.prompt();
-      await deferredInstallPrompt.userChoice;
-      deferredInstallPrompt = null;
-      installPanel.hidden = true;
+      try {
+        deferredInstallPrompt.prompt();
+        await deferredInstallPrompt.userChoice;
+      } catch {
+        return null;
+      } finally {
+        deferredInstallPrompt = null;
+      }
+
+      if (installPanel) {
+        installPanel.hidden = true;
+      }
       return;
     }
 
-    if (isIos && iosInstallHint) {
-      iosInstallHint.hidden = false;
-      iosInstallHint.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (isIos) {
+      if (iosInstallHint) {
+        iosInstallHint.hidden = false;
+        iosInstallHint.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+
+    if (isAndroid) {
+      if (iosInstallHint) {
+        iosInstallHint.hidden = true;
+      }
+
+      const copy = installPanel?.querySelector('.install-copy span');
+      if (copy) {
+        copy.textContent = 'En tu navegador, tocá el menú y elegí “Instalar app” o “Agregar a pantalla de inicio”.';
+      }
+      return;
+    }
+
+    const copy = installPanel?.querySelector('.install-copy span');
+    if (copy) {
+      copy.textContent = 'Tu navegador no ofrece instalación automática. Probá con Chrome, Edge o Safari.';
     }
   });
 }
@@ -312,7 +365,7 @@ window.addEventListener('keydown', (event) => {
 if (continueWhatsappButton) {
   continueWhatsappButton.addEventListener('click', () => {
     if (pendingWhatsappUrl) {
-      window.open(pendingWhatsappUrl, '_blank', 'noopener');
+      openWhatsappReservation();
     }
   });
 }
@@ -345,7 +398,7 @@ if (reservationModal) {
 bookingForm.addEventListener('submit', (event) => {
   event.preventDefault();
 
-  const telefonoStudio = '2215047962';
+  const telefonoStudio = '5492215047962';
   const nombre = document.getElementById('nombre').value.trim();
   const instagram = document.getElementById('instagram').value.trim();
   const fecha = document.getElementById('fecha').value;
@@ -385,16 +438,17 @@ bookingForm.addEventListener('submit', (event) => {
     ? '%0A🍕 *Mesa:* Si%0A🍺 Incluye cena en mesa: pizza + birra o gaseosa $18.000%0A'
     : `🍽️ *Mesa:* ${encodeURIComponent(mesa)}%0A`;
 
-  const mensaje = `¡Hola Pibes De Barrio! 🎙️ Quiero reservar para la transmisión.%0A%0A`
-    + `📌 *Nombre:* ${encodeURIComponent(nombre)}%0A`
-    + `📲 *Instagram:* ${encodeURIComponent(instagram)}%0A`
-    + `📅 *Fecha:* ${encodeURIComponent(fecha)}%0A`
-    + `👥 *Asistentes:* ${encodeURIComponent(personas)}%0A`
-    + mesaDetail
-    + `🎫 *Reserva:* ${encodeURIComponent(reservaId)}%0A`
-    + `🔐 *Firma:* ${encodeURIComponent(firmaReserva)}`;
+  const mensaje = `¡Hola Pibes De Barrio! 🎙️ Quiero reservar para la transmisión.
 
-  pendingWhatsappUrl = `https://wa.me/${telefonoStudio}?text=${mensaje}`;
+📌 *Nombre:* ${nombre}
+📲 *Instagram:* ${instagram}
+📅 *Fecha:* ${fecha}
+👥 *Asistentes:* ${personas}
+${mesa === 'Si' ? '🍕 *Mesa:* Si\n🍺 Incluye cena en mesa: pizza + birra o gaseosa $18.000\n' : `🍽️ *Mesa:* ${mesa}\n`}
+🎫 *Reserva:* ${reservaId}
+🔐 *Firma:* ${firmaReserva}`;
+
+  pendingWhatsappUrl = `https://wa.me/${telefonoStudio}?text=${encodeURIComponent(mensaje)}`;
   const reservationData = {
     reservaId,
     nombre,
