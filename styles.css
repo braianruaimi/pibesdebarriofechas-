@@ -87,10 +87,27 @@ body {
   line-height: 1.4;
   overflow-x: hidden;
   background-image:
-    radial-gradient(circle at 50% 10%, rgba(209, 0, 0, 0.25) 0%, transparent 50%),
-    radial-gradient(circle at 80% 90%, rgba(139, 0, 0, 0.2) 0%, transparent 50%),
-    radial-gradient(circle at 15% 60%, rgba(43, 163, 255, 0.12) 0%, transparent 35%);
+    radial-gradient(circle at 50% 8%, rgba(255, 0, 0, 0.32) 0%, transparent 24%),
+    radial-gradient(circle at 80% 86%, rgba(43, 163, 255, 0.2) 0%, transparent 28%),
+    radial-gradient(circle at 15% 60%, rgba(255, 0, 0, 0.12) 0%, transparent 22%),
+    linear-gradient(180deg, rgba(10, 10, 12, 0.98), rgba(12, 17, 27, 0.96));
   background-attachment: fixed;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.02) 0,
+      rgba(255, 255, 255, 0.02) 1px,
+      transparent 1px,
+      transparent 8px
+    );
+  opacity: 0.45;
 }
 
 header {
@@ -141,10 +158,12 @@ header {
 
 .tagline-industrial {
   font-family: var(--font-industrial);
-  font-size: clamp(1rem, 4vw, 1.5rem);
+  font-size: clamp(1.1rem, 4vw, 1.7rem);
   color: var(--flyer-metal-gray);
-  letter-spacing: 3px;
+  letter-spacing: 4px;
   margin-top: 6px;
+  text-transform: uppercase;
+  text-shadow: 0 0 16px rgba(43, 163, 255, 0.14);
   transition: margin 0.28s ease, font-size 0.28s ease, opacity 0.28s ease;
 }
 
@@ -222,14 +241,22 @@ header {
     grid-template-columns: 1fr 1fr;
     align-items: start;
   }
+
+  .upcoming-layout {
+    grid-template-columns: 460px 1fr;
+  }
+
+  .upcoming-copy {
+    padding-top: 18px;
+  }
 }
 
 .card {
   background: var(--flyer-card-bg);
   border: 2px solid #22222a;
-  border-radius: 20px;
+  border-radius: 22px;
   overflow: hidden;
-  box-shadow: 0 0 25px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.03);
   position: relative;
 }
 
@@ -271,21 +298,126 @@ header {
   filter: blur(0.2px);
 }
 
+.upcoming-card {
+  grid-column: 1 / -1;
+  background: linear-gradient(180deg, rgba(20, 20, 27, 0.98), rgba(9, 10, 14, 0.98));
+  border-color: rgba(255, 0, 0, 0.5);
+  box-shadow: 0 0 18px rgba(255, 0, 0, 0.18), 0 0 30px rgba(43, 163, 255, 0.12), inset 0 0 25px rgba(255, 255, 255, 0.03);
+  position: relative;
+  overflow: hidden;
+}
+
+.upcoming-card::before,
+.upcoming-card::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  border-radius: 30px;
+  z-index: 0;
+}
+
+.upcoming-card::before {
+  width: 180px;
+  height: 180px;
+  background: linear-gradient(135deg, rgba(255, 0, 0, 0.18), rgba(255, 0, 0, 0));
+  top: -30px;
+  right: -20px;
+  transform: rotate(18deg);
+}
+
+.upcoming-card::after {
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, rgba(43, 163, 255, 0.18), transparent 60%);
+  left: -70px;
+  bottom: -60px;
+}
+
+.upcoming-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  padding: 0 20px 20px;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.upcoming-flyer {
+  max-width: 540px;
+  width: 100%;
+  margin: 0 auto;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.38), 0 0 22px rgba(43, 163, 255, 0.12);
+}
+
+.upcoming-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px 6px 0;
+  color: var(--flyer-metal-light);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.upcoming-copy p {
+  margin: 0;
+  font-size: 1.04rem;
+}
+
+.upcoming-date {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(13, 102, 194, 0.16), rgba(255, 0, 0, 0.1));
+  border: 1px solid rgba(43, 163, 255, 0.25);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.upcoming-copy strong {
+  color: var(--flyer-red-neon);
+  font-family: var(--font-industrial);
+  letter-spacing: 0.5px;
+  font-size: 1.2rem;
+}
+
+.latest-drop-card {
+  background: linear-gradient(180deg, rgba(18, 18, 24, 0.98), rgba(8, 9, 12, 0.98));
+  border-color: rgba(43, 163, 255, 0.28);
+}
+
 .card-header {
   padding: 20px 20px 10px;
 }
 
 .title-industrial {
   font-family: var(--font-industrial);
-  font-size: clamp(2rem, 7vw, 2.7rem);
-  letter-spacing: 1px;
-  line-height: 1;
+  font-size: clamp(2.2rem, 8vw, 3.2rem);
+  letter-spacing: 2px;
+  line-height: 0.9;
   text-transform: uppercase;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.5), 0 0 14px rgba(255, 0, 0, 0.18);
 }
 
 .title-industrial .red {
   color: var(--flyer-red-neon);
-  text-shadow: 0 0 8px rgba(255, 0, 0, 0.6);
+  text-shadow: 0 0 12px rgba(255, 0, 0, 0.7), 0 0 18px rgba(255, 0, 0, 0.35);
+}
+
+.free-entry-tag {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.5em;
+  font-family: var(--font-main);
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--flyer-white);
+  background: linear-gradient(135deg, rgba(37, 211, 102, 0.9), rgba(16, 120, 77, 0.9));
+  box-shadow: 0 0 14px rgba(37, 211, 102, 0.26);
+  vertical-align: middle;
 }
 
 .flyer-container {
@@ -324,23 +456,27 @@ header {
 }
 
 .flyer-wrapper {
-  border-radius: 10px;
+  border-radius: 14px;
   overflow: hidden;
-  border: 1px solid var(--flyer-blue-main);
-  box-shadow: 0 5px 20px rgba(209, 0, 0, 0.18), 0 0 20px rgba(43, 163, 255, 0.18);
+  border: 1px solid rgba(43, 163, 255, 0.42);
+  box-shadow: 0 7px 22px rgba(0, 0, 0, 0.3), 0 0 22px rgba(43, 163, 255, 0.14);
   aspect-ratio: 4 / 5;
+  background: #0d0d12;
 }
 
 .flyer-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
-  transition: transform 0.4s ease;
+  background: #0b0b0d;
+  transition: transform 0.4s ease, filter 0.4s ease;
+  filter: saturate(1.05) contrast(1.02);
 }
 
 .flyer-wrapper:hover .flyer-img {
-  transform: scale(1.02);
+  transform: scale(1.01);
+  filter: saturate(1.08) contrast(1.04);
 }
 
 .info-box {
@@ -352,11 +488,24 @@ header {
   margin-top: 15px;
 }
 
+.live-event-box {
+  border: 1px solid rgba(255, 0, 0, 0.5);
+  border-left: 6px solid var(--flyer-red-neon);
+  background: linear-gradient(135deg, rgba(209, 0, 0, 0.18), rgba(16, 23, 34, 0.95));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 10px 18px rgba(0, 0, 0, 0.16);
+}
+
 .info-date {
+  display: inline-block;
   font-family: var(--font-industrial);
-  font-size: clamp(1.5rem, 5vw, 1.9rem);
-  color: var(--flyer-red-neon);
+  font-size: clamp(1.6rem, 5vw, 2.1rem);
+  color: var(--flyer-white);
   letter-spacing: 1px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 8px 12px;
+  box-shadow: 0 0 12px rgba(255, 0, 0, 0.18);
 }
 
 .info-detail {
@@ -368,6 +517,32 @@ header {
 
 .info-detail strong {
   color: var(--flyer-blue-bright);
+}
+
+.session-reserve-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
+  padding: 14px 22px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ff1d1d 0%, #d10000 30%, #0d66c2 100%);
+  color: var(--flyer-white);
+  text-decoration: none;
+  font-family: var(--font-industrial);
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  box-shadow: 0 12px 24px rgba(209, 0, 0, 0.26), 0 0 18px rgba(13, 102, 194, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.session-reserve-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 28px rgba(209, 0, 0, 0.32), 0 0 24px rgba(13, 102, 194, 0.2);
+  filter: brightness(1.04);
 }
 
 .cta-link {
@@ -396,12 +571,12 @@ header {
 }
 
 .latest-drop {
-  margin-top: 18px;
+  margin: 0 20px 20px;
   padding: 18px;
-  border-radius: 14px;
+  border-radius: 16px;
   background: linear-gradient(180deg, rgba(23, 23, 34, 0.98), rgba(8, 8, 10, 0.98));
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 12px 28px rgba(0, 0, 0, 0.22);
 }
 
 .latest-drop-header h3 {

@@ -334,12 +334,12 @@ if (mesaField) {
   syncMesaNotice();
 }
 
-const restoredReservation = readPersistedReservation();
+if (reservationQrContainer) {
+  reservationQrContainer.innerHTML = '';
+}
 
-if (restoredReservation?.reservationPayload) {
-  pendingWhatsappUrl = restoredReservation.pendingWhatsappUrl || '';
-  paintReservationTicket(restoredReservation);
-  openReservationModal();
+if (reservationModal) {
+  reservationModal.hidden = true;
 }
 
 bookingForm.addEventListener('submit', (event) => {
