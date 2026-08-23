@@ -345,7 +345,7 @@ if (reservationModal) {
 bookingForm.addEventListener('submit', (event) => {
   event.preventDefault();
 
-  const telefonoStudio = '5492215047962';
+  const telefonoStudio = '2215047962';
   const nombre = document.getElementById('nombre').value.trim();
   const instagram = document.getElementById('instagram').value.trim();
   const fecha = document.getElementById('fecha').value;
