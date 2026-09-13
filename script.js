@@ -414,6 +414,65 @@ const syncMesaNotice = () => {
   mesaNotice.hidden = mesaField.value !== 'Si';
 };
 
+const carousel = document.querySelector('[data-carousel]');
+const carouselSlides = Array.from(document.querySelectorAll('.flyer-slide'));
+const carouselDots = Array.from(document.querySelectorAll('.carousel-dot'));
+
+let carouselIntervalId = null;
+let currentSlide = 0;
+
+const setCarouselSlide = (index) => {
+  if (!carousel || carouselSlides.length === 0) {
+    return;
+  }
+
+  const safeIndex = (index + carouselSlides.length) % carouselSlides.length;
+  currentSlide = safeIndex;
+
+  carouselSlides.forEach((slide, slideIndex) => {
+    slide.classList.toggle('is-active', slideIndex === safeIndex);
+  });
+
+  carouselDots.forEach((dot, dotIndex) => {
+    dot.classList.toggle('is-active', dotIndex === safeIndex);
+  });
+};
+
+const stopCarousel = () => {
+  if (carouselIntervalId) {
+    window.clearInterval(carouselIntervalId);
+    carouselIntervalId = null;
+  }
+};
+
+const startCarousel = () => {
+  stopCarousel();
+  carouselIntervalId = window.setInterval(() => {
+    setCarouselSlide(currentSlide + 1);
+  }, 3000);
+};
+
+if (carousel && carouselSlides.length > 1) {
+  setCarouselSlide(0);
+  startCarousel();
+
+  carouselDots.forEach((dot) => {
+    dot.addEventListener('click', () => {
+      const nextIndex = Number(dot.dataset.slide) || 0;
+      setCarouselSlide(nextIndex);
+      startCarousel();
+    });
+  });
+
+  carousel.addEventListener('mouseenter', () => {
+    stopCarousel();
+  });
+
+  carousel.addEventListener('mouseleave', () => {
+    startCarousel();
+  });
+}
+
 if (mesaField) {
   mesaField.addEventListener('change', syncMesaNotice);
   syncMesaNotice();
